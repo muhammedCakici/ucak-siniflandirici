@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Askeri Uçak Sınıflandırıcı — EfficientNet-B0</title>
+    <meta name="description" content="EfficientNet-B0 tabanlı derin öğrenme modeliyle askeri uçak fotoğraflarını anında sınıflandırın. An-12, C-130, F-16, Eurofighter Typhoon ve daha fazlası." />
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="container">
+
+    <!-- HEADER -->
+    <header>
+        <div class="header-badge">
+            <span class="dot"></span>
+            Derin Öğrenme · Görüntü Sınıflandırma
+        </div>
+        <h1>Askeri Uçak<br>Sınıflandırıcı</h1>
+        <p class="subtitle">
+            Bir fotoğraf yükle, model sınıfı anında tanımlasın.
+        </p>
+
+        <!-- Model Info Badges -->
+        <div class="model-info">
+            <div class="model-badge"><span class="icon">🧠</span> EfficientNet-B0</div>
+            <div class="model-badge"><span class="icon">🎯</span> Fine-tuned</div>
+            <div class="model-badge"><span class="icon">✈️</span> 8 Uçak Sınıfı</div>
+            <div class="model-badge"><span class="icon">⚡</span> PyTorch</div>
+        </div>
+    </header>
+
+    <!-- UPLOAD SECTION -->
+    <section class="upload-section" id="uploadSection">
+        <div class="drop-zone" id="dropZone">
+            <div class="drop-zone-content">
+                <div class="upload-icon-wrapper">✈️</div>
+                <h2>Görsel Yükle veya Sürükle</h2>
+                <p>Askeri uçak fotoğrafını buraya bırak ya da dosyanı seç</p>
+                <button class="browse-btn" id="browseBtn" type="button">
+                    📂 Dosya Seç
+                </button>
+                <p class="file-types">JPG · PNG · WebP · Maks 10 MB</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp" />
+        </div>
+    </section>
+
+    <!-- PREVIEW SECTION -->
+    <section class="preview-section" id="previewSection">
+        <div class="preview-card">
+            <div class="preview-header">
+                <h3>Seçilen Görsel</h3>
+                <button class="clear-btn" id="clearBtn" type="button">
+                    ✕ Temizle
+                </button>
+            </div>
+            <div class="preview-body">
+                <div class="preview-image-wrap">
+                    <img id="previewImg" src="" alt="Önizleme" />
+                </div>
+                <div class="preview-meta">
+                    <div class="preview-filename" id="previewFilename">—</div>
+                    <div class="preview-filesize" id="previewFilesize">—</div>
+                    <button class="analyze-btn" id="analyzeBtn" type="button">
+                        🔍 Uçağı Tanımla
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- LOADING SECTION -->
+    <section class="loading-section" id="loadingSection">
+        <div class="loading-spinner">
+            <div class="spinner-ring"></div>
+        </div>
+        <div class="loading-text">Model analiz ediyor…</div>
+        <div class="loading-subtext">EfficientNet-B0 tahmin yapıyor, lütfen bekle</div>
+    </section>
+
+    <!-- RESULT SECTION -->
+    <section class="result-section" id="resultSection">
+
+        <!-- SVG Gradient definition (hidden) -->
+        <svg width="0" height="0" style="position:absolute">
+            <defs>
+                <linearGradient id="circleGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3b82f6" />
+                    <stop offset="50%" stop-color="#8b5cf6" />
+                    <stop offset="100%" stop-color="#06b6d4" />
+                </linearGradient>
+            </defs>
+        </svg>
+
+        <!-- Top prediction card -->
+        <div class="top-prediction-card">
+            <div class="top-prediction-label">En Yüksek Tahmin</div>
+            <div class="top-prediction-name" id="topName">—</div>
+            <div class="top-prediction-class" id="topClass">—</div>
+
+            <div class="confidence-display">
+                <!-- SVG Circle progress -->
+                <div class="confidence-circle">
+                    <svg width="80" height="80" viewBox="0 0 80 80">
+                        <circle class="bg-ring" cx="40" cy="40" r="32" />
+                        <circle class="value-ring" id="valueRing" cx="40" cy="40" r="32"
+                            stroke-dasharray="201" stroke-dashoffset="201" />
+                    </svg>
+                    <div class="circle-text">✈</div>
+                </div>
+
+                <div class="confidence-meta">
+                    <h4>Güven Skoru</h4>
+                    <div class="confidence-value" id="confNum">0.0%</div>
+                    <span class="confidence-qualifier high" id="confQual">Yüksek Güven</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- All predictions -->
+        <div class="all-predictions-card">
+            <div class="all-predictions-header">Tüm Sınıf Olasılıkları</div>
+            <div class="prediction-list" id="predictionList">
+                <!-- JS tarafından doldurulur -->
+            </div>
+        </div>
+
+    </section>
+
+    <!-- ERROR SECTION -->
+    <section class="error-section" id="errorSection">
+        <div class="error-card">
+            <div class="error-icon">⚠️</div>
+            <div class="error-text">
+                <h3 id="errorTitle">Hata</h3>
+                <p id="errorMessage">Bir sorun oluştu.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CLASSES INFO -->
+    <section class="classes-section">
+        <div class="section-title">Tanınan Uçak Sınıfları</div>
+        <div class="classes-grid">
+            <div class="class-chip"><span class="chip-icon">✈️</span> Antonov An-12</div>
+            <div class="class-chip"><span class="chip-icon">✈️</span> Lockheed C-130</div>
+            <div class="class-chip"><span class="chip-icon">✈️</span> Douglas C-47</div>
+            <div class="class-chip"><span class="chip-icon">🛩️</span> Eurofighter Typhoon</div>
+            <div class="class-chip"><span class="chip-icon">🛩️</span> F-16 Fighting Falcon</div>
+            <div class="class-chip"><span class="chip-icon">🛩️</span> BAE Hawk T1</div>
+            <div class="class-chip"><span class="chip-icon">🛩️</span> Supermarine Spitfire</div>
+            <div class="class-chip"><span class="chip-icon">🛩️</span> Panavia Tornado</div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>EfficientNet-B0 · Fine-tuned · PyTorch &nbsp;|&nbsp; Yapay Zeka ile güçlendirildi <span>Antigravity</span></p>
+    </footer>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
