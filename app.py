@@ -5,6 +5,18 @@ from PIL import Image
 import gradio as gr
 from pathlib import Path
 
+# Hugging Face ZeroGPU desteği
+try:
+    import spaces
+    HAS_SPACES = True
+except ImportError:
+    HAS_SPACES = False
+    # Fallback decorator if running locally
+    class spaces:
+        @staticmethod
+        def GPU(func):
+            return func
+
 # Sınıf İsimleri
 CLASS_NAMES = [
     'An-12',
@@ -38,25 +50,23 @@ TRANSFORM = transforms.Compose([
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
 ])
 
-device = torch.device("cpu")
-
 def load_model():
     model = torchvision.models.efficientnet_b0(weights=None)
     model.classifier = torch.nn.Sequential(
         torch.nn.Dropout(p=0.2),
         torch.nn.Linear(in_features=1280, out_features=len(CLASS_NAMES), bias=True)
     )
-    checkpoint = torch.load(MODEL_PATH, map_location=device, weights_only=False)
+    checkpoint = torch.load(MODEL_PATH, map_location="cpu", weights_only=False)
     if "model_state_dict" in checkpoint:
         model.load_state_dict(checkpoint["model_state_dict"])
     else:
         model.load_state_dict(checkpoint)
-    model.to(device)
     model.eval()
     return model
 
 model = load_model()
 
+@spaces.GPU
 def predict(img):
     if img is None:
         return None
@@ -64,6 +74,9 @@ def predict(img):
     if not isinstance(img, Image.Image):
         img = Image.fromarray(img)
         
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model.to(device)
+    
     tensor = TRANSFORM(img.convert("RGB")).unsqueeze(0).to(device)
 
     with torch.inference_mode():
@@ -77,8 +90,8 @@ def predict(img):
         
     return results
 
-title = "✈️ Askeri Uçak Sınıflandırıcı"
-description = "Görsel yükleyin. EfficientNet-B0 yapay zeka modeli uçak türünü tahmin etsin."
+title = "✈️ Askeri Uçak Sınıflandırıcı (ZeroGPU)"
+description = "Görsel yükleyin. EfficientNet-B0 yapay zeka modeli ZeroGPU desteğiyle uçak türünü tahmin etsin."
 
 demo = gr.Interface(
     fn=predict,
