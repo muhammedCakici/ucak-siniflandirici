@@ -77,18 +77,15 @@ def predict(img):
         
     return results
 
-# Gradio Arayüzü
 title = "✈️ Askeri Uçak Sınıflandırıcı"
-description = "Görsel yükleyin veya sürükleyip bırakın. EfficientNet-B0 modeli uçak türünü yüksek doğrulukla tahmin etsin!"
-article = "<p style='text-align: center;'>Desteklenen Sınıflar: Antonov An-12, C-130 Hercules, C-47 Skytrain, Eurofighter Typhoon, F-16, Hawk T1, Spitfire, Tornado</p>"
+description = "Görsel yükleyin. EfficientNet-B0 yapay zeka modeli uçak türünü tahmin etsin."
 
 demo = gr.Interface(
     fn=predict,
     inputs=gr.Image(type="pil", label="Uçak Görseli Yükleyin"),
     outputs=gr.Label(num_top_classes=3, label="Tahmin Sonuçları"),
     title=title,
-    description=description,
-    article=article
+    description=description
 )
 
 if __name__ == "__main__":
