@@ -23,8 +23,8 @@ RUN pip install --no-cache-dir fastapi uvicorn[standard] pillow python-multipart
 COPY backend/ ./backend/
 COPY frontend/ ./frontend/
 
-# Cloud Run PORT env variable'ını kullan (varsayılan 8080)
-EXPOSE 8080
+# Render.com / Cloud Run PORT env variable'ını kullan (varsayılan 10000)
+EXPOSE 10000
 
-# Başlatma komutu — Cloud Run $PORT ortam değişkenini inject eder
-CMD exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-8080}
+# Başlatma komutu — Render/Cloud Run $PORT ortam değişkenini inject eder
+CMD exec uvicorn backend.main:app --host 0.0.0.0 --port ${PORT:-10000}
