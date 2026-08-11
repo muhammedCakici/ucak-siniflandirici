@@ -28,10 +28,9 @@ CLASS_DISPLAY_NAMES = {
     'Tornado': 'Panavia Tornado'
 }
 
-MODEL_PATH = Path(__file__).parent / "backend" / "efficientnet_b0_ucak.pth"
+MODEL_PATH = Path(__file__).parent / "efficientnet_b0_ucak.pth"
 if not MODEL_PATH.exists():
-    # Hugging Face root dizininde de arayabilsin
-    MODEL_PATH = Path(__file__).parent / "efficientnet_b0_ucak.pth"
+    MODEL_PATH = Path(__file__).parent / "backend" / "efficientnet_b0_ucak.pth"
 
 TRANSFORM = transforms.Compose([
     transforms.Resize((224, 224)),
@@ -71,7 +70,6 @@ def predict(img):
         outputs = model(tensor)
         probs = torch.softmax(outputs, dim=1)[0]
 
-    # Gradio Label formatına uygun dictionary (Örn: {"F-16 Fighting Falcon": 0.95, ...})
     results = {}
     for name, prob in zip(CLASS_NAMES, probs):
         display_name = CLASS_DISPLAY_NAMES.get(name, name)
@@ -90,8 +88,7 @@ demo = gr.Interface(
     outputs=gr.Label(num_top_classes=3, label="Tahmin Sonuçları"),
     title=title,
     description=description,
-    article=article,
-    theme="soft"
+    article=article
 )
 
 if __name__ == "__main__":
